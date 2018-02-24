@@ -1,13 +1,20 @@
-const express = require('express')
-const graphqlHTTP = require('express-graphql')
-const app = express()
-
+const Koa = require('koa')
+const KoaRouter = require('koa-router')
+const koaBody = require('koa-bodyparser')
+const apolloKoa = require('apollo-server-koa')
+const { graphqlKoa, graphiqlKoa } = apolloKoa
 const schema = require('./schema')
 
-app.use('/graphql', graphqlHTTP({
-  schema,
-  graphiql: true
-}))
+const app = new Koa()
+const router = new KoaRouter()
+const PORT = 3000
 
-app.listen(4000)
-console.log('Listening ...')
+router.post('/graphql', koaBody(), graphqlKoa({ schema }));
+router.get('/graphql', graphqlKoa({ schema }))
+router.get('/graphiql', graphiqlKoa({ endpointURL: '/graphql' }))
+
+app.use(router.routes())
+app.use(router.allowedMethods())
+app.listen(PORT)
+
+console.log(`Listening on port ${PORT}...`)
